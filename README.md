@@ -1,5 +1,5 @@
 # BinaryDistillationSolver
- Chemical Engineering application:Calculate the number of stages for a binary distillation using McCabe-Thiele graphical method 
+ Chemical Engineering application: Calculate the number of stages for a binary distillation using McCabe-Thiele graphical method 
 <br/>
 
  https://da593.github.io/BinaryDistillationSolver/
