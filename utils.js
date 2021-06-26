@@ -2,7 +2,7 @@
 //Author: Dylan Au
 
 //The functions below are utility functions that aid to transform data and to help generate the graph
-
+var dataArray = [];
 function createLines(xStart,xEnd,yStart,yEnd) {
     var xPoints = [xStart,xEnd];
     var yPoints = [yStart,yEnd];

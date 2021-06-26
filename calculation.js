@@ -1,7 +1,6 @@
 //McCabe-Thiele graphical method for the number of theoretical stages required for a binary distillation
 //Author: Dylan Au
 
-var dataArray = [];
 var numStages = 0;
 var feedStage = 0;
 
@@ -123,7 +122,7 @@ function stepOff(xB,yD,xI,yI,refluxRatio,alpha) {
     numStages++;
 
     if (xStripStep<xB) {
-      yStripStop = stripLine(xStripStep,xB,xI,yI);
+      yStripStop = xStripStep
       yStripLine = createLines(xStripStep,xStripStep,yStep,yStripStop);
       yStripData = jsonDataFormat(yStripLine[0],yStripLine[1],"staircase","rgb(0,0,0");
       addDataArray(yStripData);
