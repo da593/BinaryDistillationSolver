@@ -3,43 +3,58 @@
 
 var numStages = 0;
 var feedStage = 0;
-
+var minReflux = 0;
 //Calls the various functions required to calculate and generate the McCabe-Thiele Graph
 function calculationSequence(z,yD,xB,q,refluxRatio,alpha) {
     resetValues();
-    var intersectionPoint = calcIntersectionPoint(z,yD,q,refluxRatio);
-    var feedLine = createLines(z,intersectionPoint[0],z,intersectionPoint[1]);
-    var strippingLine =createLines(yD,intersectionPoint[0],yD,intersectionPoint[1]) ;
-    var rectifyingLine =createLines(xB,intersectionPoint[0],xB,intersectionPoint[1]) ;
-    var botComp = createLines(xB,xB,0,xB);
-    var feedComp = createLines(z,z,0,z);
-    var distlComp = createLines(yD,yD,0,yD);
+    var minPoint= calculateMinPoint(q,alpha,z)
+    var minInt = stripLine(0,yD,minPoint[0],minPoint[1])
+    minReflux = calculateMinimumRefluxRatio(minInt,yD)
+    if (minReflux === "Error" || refluxRatio < minReflux) {
+      return ["N/A","N/A","N/A"]
+    }
+    else {
+      var intersectionPoint = calcIntersectionPoint(z,yD,q,refluxRatio);
+      var feedLine = createLines(z,intersectionPoint[0],z,intersectionPoint[1]);
+      var strippingLine =createLines(yD,intersectionPoint[0],yD,intersectionPoint[1]) ;
+      var rectifyingLine =createLines(xB,intersectionPoint[0],xB,intersectionPoint[1]) ;
+      var botComp = createLines(xB,xB,0,xB);
+      var feedComp = createLines(z,z,0,z);
+      var distlComp = createLines(yD,yD,0,yD);
+      var minLine = createLines(0,yD,minInt,yD)
+      
+      
+      
+      var equilibriumValues = equilibriumCurve(alpha);
+      var diagonalLineValues = diagonalLine()
+  
+      var feedLineData = jsonDataFormat(feedLine[0],feedLine[1],"Feed Line","rgb(10,97,247)");
+      var strippingLineData = jsonDataFormat(strippingLine[0],strippingLine[1],"Stripping Line","rgb(211,69,233)");
+      var rectifyingLineData = jsonDataFormat(rectifyingLine[0],rectifyingLine[1],"Rectifying Line","rgb(55,220,72)");
+      var equilData = jsonDataFormat(equilibriumValues[0],equilibriumValues[1],"Equilibrium Curve","rgb(200,0,0)")
+      var diagonalLineData = jsonDataFormat(diagonalLineValues[0],diagonalLineValues[1],"","rgb(0,0,0)");
+      var botCompData = jsonDataFormat(botComp[0],botComp[1],"","rgb(240,136,44)");
+      var feedCompData = jsonDataFormat(feedComp[0],feedComp[1],"","rgb(240,136,44)");
+      var distlCompData = jsonDataFormat(distlComp[0],distlComp[1],"","rgb(240,136,44)");
+      var minLineData = jsonDataFormat(minLine[0],minLine[1],"Minimum Reflux","grey")
+      stepOff(xB,yD,intersectionPoint[0],intersectionPoint[1],refluxRatio,alpha);
+      
+      addDataArray(feedLineData);
+      addDataArray(strippingLineData);
+      addDataArray(rectifyingLineData);
+      addDataArray(equilData);
+      addDataArray(diagonalLineData);
+      addDataArray(botCompData);
+      addDataArray(feedCompData);
+      addDataArray(distlCompData);
+      addDataArray(minLineData)
+      renderChart(dataArray);
+      return [numStages,feedStage,minReflux.toFixed(2)];
 
-
-    var equilibriumValues = equilibriumCurve(alpha);
-    var diagonalLineValues = diagonalLine()
-
-    var feedLineData = jsonDataFormat(feedLine[0],feedLine[1],"Feed Line","rgb(10,97,247)");
-    var strippingLineData = jsonDataFormat(strippingLine[0],strippingLine[1],"Stripping Line","rgb(211,69,233)");
-    var rectifyingLineData = jsonDataFormat(rectifyingLine[0],rectifyingLine[1],"Rectifying Line","rgb(55,220,72)");
-    var equilData = jsonDataFormat(equilibriumValues[0],equilibriumValues[1],"Equilibrium Curve","rgb(200,0,0)")
-    var diagonalLineData = jsonDataFormat(diagonalLineValues[0],diagonalLineValues[1],"","rgb(0,0,0)");
-    var botCompData = jsonDataFormat(botComp[0],botComp[1],"","rgb(240,136,44)");
-    var feedCompData = jsonDataFormat(feedComp[0],feedComp[1],"","rgb(240,136,44)");
-    var distlCompData = jsonDataFormat(distlComp[0],distlComp[1],"","rgb(240,136,44)");
-    stepOff(xB,yD,intersectionPoint[0],intersectionPoint[1],refluxRatio,alpha);
+    }
+   
     
-    addDataArray(feedLineData);
-    addDataArray(strippingLineData);
-    addDataArray(rectifyingLineData);
-    addDataArray(equilData);
-    addDataArray(diagonalLineData);
-    addDataArray(botCompData);
-    addDataArray(feedCompData);
-    addDataArray(distlCompData);
 
-    renderChart(dataArray);
-    return [numStages,feedStage];
 }
 
 //Calculates the intersection point of the stripping, rectifying, and feed line
@@ -75,6 +90,8 @@ function stripLine(x,xB,xI,yI) {
   var y = stripSlope*x + int;
   return y;
 }
+
+
 
 //Calculates the intersection points of the staircase, number of stages required to achieve the desired distillate composition, and the optimal feed stage
 function stepOff(xB,yD,xI,yI,refluxRatio,alpha) {
@@ -130,6 +147,49 @@ function stepOff(xB,yD,xI,yI,refluxRatio,alpha) {
     }
 
   }
+}
+
+function calculateMinPoint(q,alpha,z) {
+  let a = q*(alpha-1)
+  let b = q - z * (alpha-1) - alpha*(q-1)
+  let c = -z
+  var discriminant = b*b - 4 * a * c
+  
+  var root1, root2;
+  var x1 
+  if (a == 0) {
+    return "Error"
+  }
+
+  if (discriminant < 0 ) {
+    return "Error"
+  }
+  else if (discriminant > 0) {
+    root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+    root2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+    if ( root1 > 1 && root2 > 1) {
+     return "Error"
+    }
+    else if (root1 > 0 && root1 < 1) {
+      x1 = root1
+    }
+    else {
+      x1 = root2
+    }
+  }
+  else {
+    root1 = root2 = -b / (2 * a);
+    x1 = root1
+  }
+
+  var y1 = alpha*x1 / (1+x1*(alpha-1))
+  
+  return [x1,y1]
+    
+}
+
+function calculateMinimumRefluxRatio(int,xD) {
+  return xD/int - 1
 }
 
 

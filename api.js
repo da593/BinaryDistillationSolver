@@ -14,8 +14,9 @@ document.addEventListener("DOMContentLoaded", function() {
        var stages = calculationSequence(z,yD,xB,q,refluxRatio,alpha);
        document.getElementById("N").innerHTML = stages[0];
        document.getElementById("feedStage").innerHTML = stages[1];
-
-    }
+       document.getElementById("minReflux").innerHTML = stages[2]
+      
+    }    
 
     function clearInputs() {
 
@@ -43,6 +44,30 @@ document.addEventListener("DOMContentLoaded", function() {
 
     
 });
+
+function fraction(input) {
+    if (isNaN(input.value)) {
+        input.value = 0
+    }
+    if (input.value <0 ) {
+        input.value = 0
+    }
+    if (input.value > 1) {
+        input.value = 1
+    }
+}
+
+function ratio(input) {
+   
+    if (isNaN(input.value)) {
+        input.value = 0
+    }
+    if (input.value < 0) {
+        input.value = 0
+    }
+}
     
+
+
 
 
